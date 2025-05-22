@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OSINT & Security Dashboard</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background-color: #e6f3f0; display: flex; height: 100vh; color: #333; }
+        .sidebar { width: 220px; background-color: #f8f9fa; padding: 20px; box-shadow: 2px 0 5px rgba(0,0,0,0.1); overflow-y: auto; border-right: 1px solid #dee2e6;}
+        .sidebar h2 { font-size: 1.3em; color: #00695c; margin-bottom: 20px; text-align: center; }
+        .sidebar ul { list-style: none; padding: 0; }
+        .sidebar li { padding: 12px 15px; margin-bottom: 10px; background-color: #e9ecef; border-radius: 5px; cursor: pointer; transition: background-color 0.3s, color 0.3s; font-size: 0.95em; }
+        .sidebar li:hover, .sidebar li.active { background-color: #00796b; color: white; }
+        .main-content { flex-grow: 1; padding: 25px; display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 25px; overflow-y: auto; }
+        .panel { background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.08); padding: 20px; display: none; /* Hidden by default */ }
+        .panel.active { display: block; } /* Shown when active */
+        .panel h3 { margin-top: 0; color: #004d40; border-bottom: 2px solid #a7d8de; padding-bottom: 12px; font-size: 1.2em; }
+        .panel textarea { width: calc(100% - 20px); min-height: 200px; margin-top: 15px; border: 1px solid #ced4da; border-radius: 4px; padding: 10px; font-family: 'Courier New', Courier, monospace; font-size: 0.9em; background-color: #fdfdfd; }
+        .panel input[type="text"], .panel input[type="email"], .panel select { width: calc(70% - 10px); padding: 10px; border: 1px solid #ced4da; border-radius: 4px; margin-right: 8px; font-size: 0.9em; }
+        .panel button { padding: 10px 18px; background-color: #00796b; color: white; border: none; border-radius: 4px; cursor: pointer; transition: background-color 0.3s; font-size: 0.9em; }
+        .panel button:hover { background-color: #004d40; }
+        .panel .input-group { margin-bottom: 15px; }
+        .panel p.tool-note { font-size: 0.85em; color: #555; margin-top: 5px; margin-bottom: 10px; background-color: #f0f0f0; padding: 8px; border-radius: 3px;}
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>OSINT Tools</h2>
+        <ul>
+            <li onclick="showPanel('sherlock-panel', this)">Sherlock</li>
+            <li onclick="showPanel('holehe-panel', this)">Holehe</li>
+            <li onclick="showPanel('ghunt-panel', this)">GHunt</li>
+            <li onclick="showPanel('ipdomain-panel', this)">IP/Domain Info</li>
+            <li onclick="showPanel('theharvester-panel', this)">TheHarvester</li>
+            <li onclick="showPanel('sublist3r-panel', this)">Sublist3r</li>
+            <li onclick="showPanel('metagoofil-panel', this)">Metagoofil</li>
+            <li onclick="showPanel('nmap-panel', this)">Nmap</li>
+            <li onclick="showPanel('dnsrecon-panel', this)">Dnsrecon</li>
+            <li onclick="showPanel('whatweb-panel', this)">WhatWeb</li>
+            <!-- Placeholder for original app layout -->
+            <li onclick="showPanel('chatgpt-panel', this)">ChatGPT (UI)</li>
+            <li onclick="showPanel('claude-panel', this)">Claude (UI)</li>
+            <li onclick="showPanel('gemini-panel', this)">Gemini (UI)</li>
+            <li onclick="showPanel('pi-panel', this)">Pi (UI)</li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <!-- Placeholder Panels -->
+        <div class="panel" id="chatgpt-panel"><h3>ChatGPT (UI Placeholder)</h3><p>Integrate ChatGPT or similar LLM UI here.</p></div>
+        <div class="panel" id="claude-panel"><h3>Claude (UI Placeholder)</h3><p>Integrate Claude or similar LLM UI here.</p></div>
+        <div class="panel" id="gemini-panel"><h3>Gemini (UI Placeholder)</h3><p>Integrate Gemini or similar LLM UI here.</p></div>
+        <div class="panel" id="pi-panel"><h3>Pi (UI Placeholder)</h3><p>Integrate Pi or similar LLM UI here.</p></div>
+
+        <div class="panel" id="sherlock-panel">
+            <h3>Sherlock Username Search</h3>
+            <div class="input-group">
+                <input type="text" id="sherlock-username" placeholder="Enter username">
+                <button onclick="runTool('sherlock')">Search</button>
+            </div>
+            <textarea id="sherlock-output" readonly placeholder="Results will appear here..."></textarea>
+        </div>
+
+        <div class="panel" id="holehe-panel">
+            <h3>Holehe Email Check</h3>
+            <div class="input-group">
+                <input type="email" id="holehe-email" placeholder="Enter email address">
+                <button onclick="runTool('holehe')">Check</button>
+            </div>
+            <textarea id="holehe-output" readonly placeholder="Results will appear here..."></textarea>
+        </div>
+
+        <div class="panel" id="ghunt-panel">
+            <h3>GHunt Email Investigation</h3>
+            <p class="tool-note">Note: GHunt requires local cookie configuration and authentication. Full functionality via web server is complex and may require manual server-side setup.</p>
+            <div class="input-group">
+                <input type="email" id="ghunt-email" placeholder="Enter target Gmail address or Gaia ID">
+                <button onclick="runTool('ghunt')">Investigate</button>
+            </div>
+            <textarea id="ghunt-output" readonly placeholder="Results will appear here... Ensure GHunt is configured on the server."></textarea>
+        </div>
+
+        <div class="panel" id="ipdomain-panel">
+            <h3>IP/Domain Information (Whois, Dig)</h3>
+            <div class="input-group">
+                <input type="text" id="ipdomain-target" placeholder="Enter IP or Domain">
+                <button onclick="runTool('ipdomain')">Get Info</button>
+            </div>
+            <textarea id="ipdomain-output" readonly placeholder="WHOIS and DNS lookup results..."></textarea>
+        </div>
+
+        <div class="panel" id="theharvester-panel">
+            <h3>TheHarvester</h3>
+            <p class="tool-note">Gathers emails, subdomains, hosts from public sources. Can be slow.</p>
+            <div class="input-group">
+                <input type="text" id="theharvester-domain" placeholder="Enter domain (e.g., example.com)">
+                <select id="theharvester-source" style="width: calc(28% - 10px); padding: 10px; border: 1px solid #ced4da; border-radius: 4px;">
+                    <option value="google,bing">google,bing</option>
+                    <option value="all">all (very slow)</option>
+                    <option value="baidu">baidu</option>
+                    <option value="linkedin">linkedin</option>
+                    <option value="twitter">twitter</option>
+                </select>
+                <button onclick="runTool('theharvester')">Harvest</button>
+            </div>
+            <textarea id="theharvester-output" readonly placeholder="Results from TheHarvester..."></textarea>
+        </div>
+
+        <div class="panel" id="sublist3r-panel">
+            <h3>Sublist3r Subdomain Enumeration</h3>
+            <div class="input-group">
+                <input type="text" id="sublist3r-domain" placeholder="Enter domain (e.g., example.com)">
+                <button onclick="runTool('sublist3r')">Find Subdomains</button>
+            </div>
+            <textarea id="sublist3r-output" readonly placeholder="Subdomain enumeration results..."></textarea>
+        </div>
+        
+        <div class="panel" id="metagoofil-panel">
+            <h3>Metagoofil Metadata Extraction</h3>
+            <p class="tool-note">Extracts metadata from public documents of a specific domain. Results might be extensive or require file downloads (not directly handled here).</p>
+            <div class="input-group">
+                <input type="text" id="metagoofil-domain" placeholder="Enter domain (e.g., example.com)">
+                <input type="text" id="metagoofil-filetypes" placeholder="Filetypes (e.g., pdf,doc,xls)" value="pdf,doc,xls" style="width: calc(30% - 10px);">
+                 <input type="text" id="metagoofil-limit" placeholder="Limit (e.g., 50)" value="50" style="width: calc(15% - 10px);">
+                <button onclick="runTool('metagoofil')">Extract Metadata</button>
+            </div>
+            <textarea id="metagoofil-output" readonly placeholder="Metagoofil results (paths to files or metadata summary)..."></textarea>
+        </div>
+
+        <div class="panel" id="nmap-panel">
+            <h3>Nmap Network Scanner</h3>
+            <div class="input-group">
+                <input type="text" id="nmap-target" placeholder="Enter IP or Hostname">
+                 <select id="nmap-scan-type" style="width: calc(28% - 10px); padding: 10px; border: 1px solid #ced4da; border-radius: 4px;">
+                    <option value="-F">Fast Scan (-F)</option>
+                    <option value="-sV -T4">Service Version (-sV -T4)</option>
+                    <option value="-A -T4">Aggressive (-A -T4)</option>
+                    <option value="-p- -T4">All Ports (Very Slow)</option>
+                    <option value="--script vuln">Vuln Scripts (Potentially Intrusive)</option>
+                </select>
+                <button onclick="runTool('nmap')">Scan</button>
+            </div>
+            <textarea id="nmap-output" readonly placeholder="Nmap scan results..."></textarea>
+        </div>
+
+        <div class="panel" id="dnsrecon-panel">
+            <h3>Dnsrecon DNS Enumeration</h3>
+            <div class="input-group">
+                <input type="text" id="dnsrecon-domain" placeholder="Enter domain (e.g., example.com)">
+                <select id="dnsrecon-type" style="width: calc(28% - 10px); padding: 10px; border: 1px solid #ced4da; border-radius: 4px;">
+                    <option value="std">Standard Enum (std)</option>
+                    <option value="brt">Brute-force (brt, needs wordlist)</option>
+                    <option value="axfr">Zone Transfer (axfr)</option>
+                </select>
+                <button onclick="runTool('dnsrecon')">Enumerate</button>
+            </div>
+            <textarea id="dnsrecon-output" readonly placeholder="Dnsrecon results..."></textarea>
+        </div>
+        
+        <div class="panel" id="whatweb-panel">
+            <h3>WhatWeb - Website Technologies</h3>
+            <div class="input-group">
+                <input type="text" id="whatweb-url" placeholder="Enter URL (e.g., http://example.com)">
+                <button onclick="runTool('whatweb')">Identify</button>
+            </div>
+            <textarea id="whatweb-output" readonly placeholder="Identified web technologies..."></textarea>
+        </div>
+
+    </div>
+
+    <script>
+        let activePanelId = null;
+        let activeListItem = null;
+
+        function showPanel(panelId, listItem) {
+            if (activePanelId) {
+                document.getElementById(activePanelId).classList.remove('active');
+            }
+            if (activeListItem) {
+                activeListItem.classList.remove('active');
+            }
+
+            const panel = document.getElementById(panelId);
+            if (panel) {
+                panel.classList.add('active');
+                activePanelId = panelId;
+            }
+            if (listItem) {
+                listItem.classList.add('active');
+                activeListItem = listItem;
+            }
+        }
+
+        // Show the first panel by default or a preferred one
+        document.addEventListener('DOMContentLoaded', () => {
+            const firstToolListItem = document.querySelector('.sidebar li');
+            if (firstToolListItem) {
+                 // Default to Sherlock or any other first item
+                const defaultPanelId = firstToolListItem.getAttribute('onclick').match(/'([^']+)'/)[1];
+                showPanel(defaultPanelId, firstToolListItem);
+            }
+        });
+
+                        async function runTool(toolName) {
+            const outputElement = document.getElementById(`${toolName}-output`);
+            if (!outputElement) {
+                console.error("Output element not found for tool: " + toolName);
+                return;
+            }
+            outputElement.value = "Running, please wait...";
+            let payload = {};
+            let endpoint = `/run/${toolName}`; // This will correctly become /run/holehe for Holehe
+
+            // Gather inputs based on toolName (your existing code for this)
+            if (toolName === 'sherlock') {
+                payload.username = document.getElementById('sherlock-username').value;
+            } else if (toolName === 'holehe') {
+                payload.email = document.getElementById('holehe-email').value;
+            } else if (toolName === 'ghunt') {
+                payload.email = document.getElementById('ghunt-email').value;
+            } else if (toolName === 'ipdomain') {
+                payload.target = document.getElementById('ipdomain-target').value;
+            } else if (toolName === 'theharvester') {
+                payload.domain = document.getElementById('theharvester-domain').value;
+                payload.source = document.getElementById('theharvester-source').value;
+            } else if (toolName === 'sublist3r') {
+                payload.domain = document.getElementById('sublist3r-domain').value;
+            } else if (toolName === 'metagoofil') {
+                payload.domain = document.getElementById('metagoofil-domain').value;
+                payload.filetypes = document.getElementById('metagoofil-filetypes').value;
+                payload.limit = document.getElementById('metagoofil-limit').value;
+            } else if (toolName === 'nmap') {
+                payload.target = document.getElementById('nmap-target').value;
+                payload.scan_type = document.getElementById('nmap-scan-type').value;
+            } else if (toolName === 'dnsrecon') {
+                payload.domain = document.getElementById('dnsrecon-domain').value;
+                payload.type = document.getElementById('dnsrecon-type').value;
+            } else if (toolName === 'whatweb') {
+                payload.url = document.getElementById('whatweb-url').value;
+            }
+
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload),
+                });
+
+                // Check if the response status indicates an error (like 404)
+                if (!response.ok) { // response.ok is true for statuses 200-299
+                    const errorText = await response.text(); // Get the HTML error page content
+                    outputElement.value = `Server Error: ${response.status} ${response.statusText}\n\n--- Server Response ---\n${errorText}`;
+                    console.error("Server error response (likely HTML for 404 or 500):", errorText);
+                    return; // Stop further processing
+                }
+
+                // If response.ok, then it should be JSON (or an error from our app formatted as JSON)
+                const data = await response.json();
+                if (data.error) {
+                    outputElement.value = `Tool Error: ${data.error}`;
+                } else {
+                    outputElement.value = data.output;
+                }
+
+            } catch (error) { // Catches network failures or if response.json() fails on unexpected content
+                outputElement.value = `Client-side error or failed to connect: ${error}\n\nCheck browser console (F12 -> Console and Network tabs) and server logs for more details. The server might be down or the endpoint is incorrect.`;
+                console.error("Fetch/JSON parsing error details:", error);
+            }
+        }
+    </script>
+</body>
+</html>
