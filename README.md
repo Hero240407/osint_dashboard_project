@@ -19,7 +19,7 @@ This software is intended to help users learn about OSINT techniques and cyberse
 
 ## License
 
-This project is open source and licensed under the **MIT License** - see the `LICENSE` file for details.
+This project is open source and licensed under the **MIT License** - see the `LICENSE` file for details.. 
 
 ## Features
 
@@ -62,14 +62,28 @@ This project is open source and licensed under the **MIT License** - see the `LI
 *   **Environment Management:** Python `venv`
 *   **Setup:** Bash Script (`setup.sh`)
 
-## Prerequisites
+## Prerequisites & System Compatibility
 
-*   **Operating System:** Linux (developed/tested on Ubuntu-based systems).
+This project is designed and primarily tested for **Linux-based systems**, specifically on **Debian-based distributions (like Ubuntu, Kali Linux, Debian itself)**. While some components might work on other operating systems with adjustments, full functionality and the `setup.sh` script are tailored for this environment.
+
+Before you begin, ensure your system has the following base components. The `setup.sh` script will attempt to install or verify many of these, but it's good to be aware.
+
 *   **Python:** Version 3.8 or higher.
+    *   To check: `python3 --version`
+    *   To install (if missing on a Debian-based system): `sudo apt update && sudo apt install python3`
+*   **`pip` (Python package installer):**
+    *   To check: `pip3 --version`
+    *   To install (if missing, usually comes with `python3-pip`): `sudo apt install python3-pip`
+*   **`python3-venv` (for creating Python virtual environments):**
+    *   To install: `sudo apt install python3-venv`
 *   **`git`**: For cloning tool repositories.
-*   **`curl`**: Used by the setup script and potentially some tools.
-*   **`pip`**: Python package installer.
-*   **`python3-venv`**: For creating Python virtual environments.
+    *   To check: `git --version`
+    *   To install: `sudo apt install git`
+*   **`curl`**: Often used by setup scripts or tools for downloads.
+    *   To check: `curl --version`
+    *   To install: `sudo apt install curl`
+
+The `setup.sh` script will guide you through installing other specific command-line OSINT tools (like Nmap, FFUF, etc.) via `apt`.
 
 ## Installation
 
@@ -101,7 +115,7 @@ The `setup.sh` script automates most of the installation process, including syst
     *   It will then prompt you to install essential system packages (like `python3-pip`, `git`) and optional OSINT system tools (like `nmap`, `ffuf`) via `apt`. This step will require `sudo` privileges.
     *   Next, it will ask which of the common clonable OSINT tools (Sherlock, Sublist3r, etc.) you wish to install or update.
     *   Follow the on-screen prompts.
-    *   **Consider using `sudo ./setup.sh` only if you fully understand the script's actions and trust its source, as it invokes `sudo apt install`.** The script is designed to ask for `sudo` only when needed for `apt` commands.
+    *   **Note on `sudo`:** The script is designed to ask for `sudo` only when needed for `apt` commands.
 
 4.  **Post-Setup Steps (CRITICAL - Read output from `setup.sh`):**
     *   **GHunt Cookies:** If you installed GHunt, you **MUST** manually generate its `cookies.json` file. Navigate to where GHunt was cloned (e.g., `./tools/GHunt/GHunt/`) and run `python3 check_and_gen_cookies.py`.
@@ -119,24 +133,24 @@ If you prefer to install everything manually or the setup script encounters issu
     mkdir osint_dashboard_project
     cd osint_dashboard_project
     ```
-    Place `app.py`, `data.json` (can be copied from this README or started fresh), `history.json` (empty `[]`), and the `templates/index.html` file here.
+    Place `app.py`, `data.json`, `history.json` (empty `[]`), and the `templates/index.html` file here.
 
-2.  **Python Virtual Environment:**
+2.  **Install Prerequisites (System-Wide):**
+    Ensure Python 3.8+, pip, venv, git, curl, and other OSINT tools are installed.
+    ```bash
+    sudo apt update
+    sudo apt install -y python3 python3-pip python3-venv git curl whois nmap dnsrecon whatweb libimage-exiftool-perl ffuf
+    ```
+
+3.  **Python Virtual Environment:**
     ```bash
     python3 -m venv venv
     source venv/bin/activate
     ```
 
-3.  **Install Core Python Packages (into venv):**
+4.  **Install Core Python Packages (into venv):**
     ```bash
     pip install Flask holehe theHarvester
-    ```
-
-4.  **Install System-Wide OSINT Tools (via `apt`):**
-    These are tools that the dashboard can call directly if they are in your system's PATH.
-    ```bash
-    sudo apt update
-    sudo apt install -y python3-pip python3-venv git whois nmap dnsrecon whatweb libimage-exiftool-perl curl ffuf
     ```
 
 5.  **Manually Clone and Set Up Tools:**
@@ -168,7 +182,7 @@ If you prefer to install everything manually or the setup script encounters issu
         git clone https://github.com/mxrch/GHunt.git GHunt
         cd GHunt 
         if [ -f GHunt/requirements.txt ]; then (cd GHunt && pip install -r requirements.txt); fi
-        (cd GHunt && python3 check_and_gen_cookies.py) 
+        (cd GHunt && python3 check_and_gen_cookies.py) # CRITICAL: Manual cookie generation
         cd ../..
         ```
         *In `data.json`, ensure:* `"clone_dir": "tools/GHunt"`, `"run_in_directory": "tools/GHunt"`, `"requirements_file": "GHunt/requirements.txt"`.
@@ -179,15 +193,12 @@ If you prefer to install everything manually or the setup script encounters issu
         git clone https://github.com/laramies/metagoofil.git metagoofil
         cd ../..
         ```
-        *In `data.json`, ensure:* `"clone_dir": "tools/metagoofil"`, `"run_in_directory": "tools/metagoofil"`.
+        *In `data.json`, ensure:* `"clone_dir": "tools/metagoofil"`, `"run_in_directory": "tools/metagoofil"`. (Ensure `libimage-exiftool-perl` is installed via `apt`).
 
-    **Note on `data.json` paths:** The `clone_dir` and `run_in_directory` fields in `data.json` tell `app.py` where to find these tools relative to the project root. Ensure they match your manual cloning structure.
+    **Note on `data.json` paths:** The `clone_dir` and `run_in_directory` fields in `data.json` tell `app.py` where to find these tools. Ensure they match your manual cloning structure.
 
 6.  **Create `data` Directory:**
-    In your project root:
-    ```bash
-    mkdir data
-    ```
+    In your project root: `mkdir data`
 
 ## Running the Application
 
@@ -203,10 +214,11 @@ If you prefer to install everything manually or the setup script encounters issu
     ```
 
 3.  **Access the Dashboard:**
-    Open your web browser and navigate to `http://YOUR_SERVER_IP:5001`.
-    *   `YOUR_SERVER_IP` is the IP address of the machine running the Flask app.
-    *   If running locally, you can usually use `http://localhost:5001` or `http://127.0.0.1:5001`.
-    *   The `app.py` script runs on `0.0.0.0` by default. You can change `host='0.0.0.0'` to `host='localhost'` in the `app.run(...)` line in `app.py` for local access only.
+    The Flask development server, by default in `app.py`, runs on `host='0.0.0.0'` and `port=5001`.
+    *   **`0.0.0.0`** means it listens on all available network interfaces on the machine where it's running.
+    *   This allows you to access the dashboard from **any other machine on the same local network** by navigating to `http://YOUR_SERVER_IP:5001` (e.g., `http://192.168.1.10:5001`), where `YOUR_SERVER_IP` is the local IP address of the machine running the dashboard.
+    *   If you are accessing it from the same machine it's running on, you can use `http://localhost:5001` or `http://127.0.0.1:5001`.
+    *   If you only want the dashboard to be accessible from the machine it's running on (localhost only), you can change `host='0.0.0.0'` to `host='localhost'` in the `app.run(...)` line at the bottom of `app.py`.
 
 ## Usage
 
@@ -225,12 +237,12 @@ This project is open source and contributions are welcome! If you have suggestio
 *   **Open an Issue:** Use the GitHub Issues tracker for bugs or feature discussions.
 *   **Pull Requests:** Feel free to fork the repository and submit pull requests.
 
-The creator ([Hero240407](https://github.com/Hero240407)) is open to comments, recommendations, and collaboration to improve this dashboard.
+Me ([Hero240407](https://github.com/Hero240407)) is open to comments, recommendations, and collaboration to improve this dashboard.
 
 ## Troubleshooting
 
 *   **"Command not found" (Nmap, ffuf, etc.):** Ensure the tool is installed globally (`sudo apt install <tool_name>`).
-*   **Python errors:** Check Flask console output. Ensure Python dependencies are in the active virtual environment.
+*   **Python errors:** Check Flask server console output. Ensure Python dependencies are in the active virtual environment.
 *   **Tool cloning/requirements errors:** Check internet, Git URLs. For nested `requirements.txt`, verify paths.
 *   **GHunt not working:** Likely missing/invalid `GHunt/cookies.json`. Re-run `check_and_gen_cookies.py`.
 *   **Jinja2 Template Errors:** Avoid active Jinja2 tags `{{ ... }}` in HTML attributes like `placeholder` if they are not meant to be rendered by Flask.
