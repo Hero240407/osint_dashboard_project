@@ -3,272 +3,384 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OSINT & Security Dashboard</title>
+    <title>Enhanced OSINT Dashboard</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background-color: #e6f3f0; display: flex; height: 100vh; color: #333; }
-        .sidebar { width: 220px; background-color: #f8f9fa; padding: 20px; box-shadow: 2px 0 5px rgba(0,0,0,0.1); overflow-y: auto; border-right: 1px solid #dee2e6;}
-        .sidebar h2 { font-size: 1.3em; color: #00695c; margin-bottom: 20px; text-align: center; }
-        .sidebar ul { list-style: none; padding: 0; }
-        .sidebar li { padding: 12px 15px; margin-bottom: 10px; background-color: #e9ecef; border-radius: 5px; cursor: pointer; transition: background-color 0.3s, color 0.3s; font-size: 0.95em; }
-        .sidebar li:hover, .sidebar li.active { background-color: #00796b; color: white; }
-        .main-content { flex-grow: 1; padding: 25px; display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 25px; overflow-y: auto; }
-        .panel { background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.08); padding: 20px; display: none; /* Hidden by default */ }
-        .panel.active { display: block; } /* Shown when active */
+        .sidebar { width: 280px; background-color: #f8f9fa; padding: 20px; box-shadow: 2px 0 5px rgba(0,0,0,0.1); overflow-y: auto; border-right: 1px solid #dee2e6; display: flex; flex-direction: column; }
+        .sidebar h2 { font-size: 1.3em; color: #00695c; margin-bottom: 10px; text-align: center; }
+        .sidebar ul#toolList { list-style: none; padding: 0; flex-grow: 1; }
+        .sidebar li.tool-item { padding: 8px 10px; margin-bottom: 8px; background-color: #e9ecef; border-radius: 5px; cursor: pointer; transition: background-color 0.3s, color 0.3s; font-size: 0.88em; display: flex; justify-content: space-between; align-items: center; }
+        .sidebar li.tool-item:hover, .sidebar li.tool-item.active { background-color: #00796b; color: white; }
+        .sidebar .tool-item-name { flex-grow: 1; margin-right: 5px; }
+        .sidebar .tool-actions button { font-size: 0.65em; padding: 3px 5px; margin-left: 3px; background-color: #004d40; color:white; border:none; border-radius:3px; cursor:pointer;}
+        .sidebar .tool-actions button.history-btn {background-color: #5a6268;}
+        .sidebar .tool-actions button:hover { background-color: #00251a;}
+        .sidebar .tool-actions button.history-btn:hover {background-color: #33383c;}
+        .sidebar .manage-tools-btn { display: block; width: calc(100% - 10px) ; padding: 10px 15px; margin-top:15px; background-color: #007bff; color: white; border: none; border-radius: 5px; text-align: center; cursor: pointer; font-size: 0.95em; }
+        .sidebar .manage-tools-btn:hover { background-color: #0056b3; }
+
+        .main-content { flex-grow: 1; padding: 25px; overflow-y: auto; }
+        .panel { background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.08); padding: 20px; display: none; }
+        .panel.active { display: block; }
         .panel h3 { margin-top: 0; color: #004d40; border-bottom: 2px solid #a7d8de; padding-bottom: 12px; font-size: 1.2em; }
-        .panel textarea { width: calc(100% - 20px); min-height: 200px; margin-top: 15px; border: 1px solid #ced4da; border-radius: 4px; padding: 10px; font-family: 'Courier New', Courier, monospace; font-size: 0.9em; background-color: #fdfdfd; }
-        .panel input[type="text"], .panel input[type="email"], .panel select { width: calc(70% - 10px); padding: 10px; border: 1px solid #ced4da; border-radius: 4px; margin-right: 8px; font-size: 0.9em; }
-        .panel button { padding: 10px 18px; background-color: #00796b; color: white; border: none; border-radius: 4px; cursor: pointer; transition: background-color 0.3s; font-size: 0.9em; }
-        .panel button:hover { background-color: #004d40; }
+        
+        #toolOutputDisplay { 
+            width: calc(100% - 22px); 
+            min-height: 250px; 
+            margin-top: 15px; 
+            border: 1px solid #ced4da; 
+            border-radius: 4px; 
+            padding: 10px; 
+            font-family: 'Courier New', Courier, monospace; 
+            font-size: 0.9em; 
+            background-color: #fdfdfd; 
+            white-space: pre-wrap; 
+            word-wrap: break-word; 
+            overflow-y: auto;
+        }
+        #toolOutputDisplay.error-output { border-left: 5px solid #dc3545; }
+        #toolOutputDisplay.success-output { border-left: 5px solid #28a745; }
+
+
         .panel .input-group { margin-bottom: 15px; }
-        .panel p.tool-note { font-size: 0.85em; color: #555; margin-top: 5px; margin-bottom: 10px; background-color: #f0f0f0; padding: 8px; border-radius: 3px;}
+        .panel .input-group label { display: block; margin-bottom: 5px; font-weight: 500; font-size:0.9em; }
+        .panel .input-group input[type="text"], .panel .input-group input[type="email"], .panel .input-group input[type="url"], .panel .input-group select { width: calc(100% - 22px); padding: 10px; border: 1px solid #ced4da; border-radius: 4px; font-size: 0.9em; }
+        .panel button.run-tool-btn { padding: 10px 18px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; transition: background-color 0.3s; font-size: 0.9em; margin-top:10px; }
+        .panel button.run-tool-btn:hover { background-color: #1e7e34; }
+        .panel p.tool-description, .panel p.tool-notes { font-size: 0.9em; margin-bottom: 10px; background-color: #f0f7f8; padding: 8px; border-left: 3px solid #00796b; border-radius:3px; }
+        #currentToolStatus { font-size: 0.8em; margin-top: 5px; padding: 5px; border-radius: 3px; text-align: right;}
+        #currentToolStatus.status-success { color: green; }
+        #currentToolStatus.status-error { color: red; }
+
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); }
+        .modal-content { background-color: #fefefe; margin: 5% auto; padding: 25px; border: 1px solid #888; width: 80%; max-width: 700px; border-radius: 8px; position: relative; }
+        .modal-content h4 { margin-top: 0; color: #00695c; }
+        .modal-content .close-btn { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; position: absolute; top: 10px; right: 20px; }
+        .modal-content .close-btn:hover, .modal-content .close-btn:focus { color: black; text-decoration: none; }
+        .modal-content label { display: block; margin-top: 10px; margin-bottom: 3px; font-weight: bold; font-size: 0.9em; }
+        .modal-content input[type="text"], .modal-content input[type="url"], .modal-content textarea, .modal-content select { width: calc(100% - 20px); padding: 8px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.9em; }
+        .modal-content textarea { min-height: 60px; }
+        .modal-content button { padding: 10px 15px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; margin-top:10px; }
+        .modal-content button:hover { background-color: #0056b3; }
+        .modal-content .input-field-config { border: 1px dashed #ccc; padding: 10px; margin-bottom: 10px; border-radius: 4px; }
+        .modal-content .input-field-config label {font-weight:normal; font-size:0.85em;}
+        .modal-content #installationLog {margin-top:15px; padding:10px; background-color:#f0f0f0; border:1px solid #ddd; max-height:150px; overflow-y:auto; font-size:0.8em; white-space:pre-wrap;}
+
+        #historyModalContent ul { list-style: none; padding: 0; max-height: 400px; overflow-y:auto; }
+        #historyModalContent li { padding: 8px; border-bottom: 1px solid #eee; cursor: pointer; font-size: 0.9em; }
+        #historyModalContent li:hover { background-color: #f0f0f0; }
+        #historyModalContent li small { display: block; color: #555; font-size: 0.8em; }
+        #historyModal .modal-content {max-width: 800px;}
     </style>
 </head>
 <body>
     <div class="sidebar">
         <h2>OSINT Tools</h2>
-        <ul>
-            <li onclick="showPanel('sherlock-panel', this)">Sherlock</li>
-            <li onclick="showPanel('holehe-panel', this)">Holehe</li>
-            <li onclick="showPanel('ghunt-panel', this)">GHunt</li>
-            <li onclick="showPanel('ipdomain-panel', this)">IP/Domain Info</li>
-            <li onclick="showPanel('theharvester-panel', this)">TheHarvester</li>
-            <li onclick="showPanel('sublist3r-panel', this)">Sublist3r</li>
-            <li onclick="showPanel('metagoofil-panel', this)">Metagoofil</li>
-            <li onclick="showPanel('nmap-panel', this)">Nmap</li>
-            <li onclick="showPanel('dnsrecon-panel', this)">Dnsrecon</li>
-            <li onclick="showPanel('whatweb-panel', this)">WhatWeb</li>
-            <!-- Placeholder for original app layout -->
-            <li onclick="showPanel('chatgpt-panel', this)">ChatGPT (UI)</li>
-            <li onclick="showPanel('claude-panel', this)">Claude (UI)</li>
-            <li onclick="showPanel('gemini-panel', this)">Gemini (UI)</li>
-            <li onclick="showPanel('pi-panel', this)">Pi (UI)</li>
-        </ul>
+        <ul id="toolList"></ul>
+        <button class="manage-tools-btn" onclick="openToolModal()">Add New Tool</button>
     </div>
 
     <div class="main-content">
-        <!-- Placeholder Panels -->
-        <div class="panel" id="chatgpt-panel"><h3>ChatGPT (UI Placeholder)</h3><p>Integrate ChatGPT or similar LLM UI here.</p></div>
-        <div class="panel" id="claude-panel"><h3>Claude (UI Placeholder)</h3><p>Integrate Claude or similar LLM UI here.</p></div>
-        <div class="panel" id="gemini-panel"><h3>Gemini (UI Placeholder)</h3><p>Integrate Gemini or similar LLM UI here.</p></div>
-        <div class="panel" id="pi-panel"><h3>Pi (UI Placeholder)</h3><p>Integrate Pi or similar LLM UI here.</p></div>
+        <div id="welcomePanel" class="panel active">
+            <h3>Welcome to the Enhanced OSINT Dashboard</h3>
+            <p>Select a tool from the sidebar, view its history, or add a new tool configuration.</p>
+            <p>Tool outputs are saved to files in the 'data/' directory on the server and can be reviewed via the history feature.</p>
+        </div>
+        <div id="toolRunPanel" class="panel">
+            <h3 id="currentToolName"></h3>
+            <p id="currentToolDescription" class="tool-description" style="display:none;"></p>
+            <p id="currentToolNotes" class="tool-notes" style="display:none;"></p>
+            <div id="toolInputsContainer"></div>
+            <button class="run-tool-btn" onclick="executeCurrentTool()">Run Tool</button>
+            <div id="currentToolStatus"></div>
+            <div id="toolOutputDisplay" placeholder="Tool output will appear here..."></div>
+        </div>
+    </div>
 
-        <div class="panel" id="sherlock-panel">
-            <h3>Sherlock Username Search</h3>
-            <div class="input-group">
-                <input type="text" id="sherlock-username" placeholder="Enter username">
-                <button onclick="runTool('sherlock')">Search</button>
-            </div>
-            <textarea id="sherlock-output" readonly placeholder="Results will appear here..."></textarea>
-        </div>
+    <div id="toolModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeToolModal()">×</span>
+            <h4 id="modalTitle">Add New Tool</h4>
+            <input type="hidden" id="toolId">
+            <label for="toolName">Tool Name:</label>
+            <input type="text" id="toolName" placeholder="e.g., Sherlock Username Search">
+            <label for="toolDescription">Description (optional):</label>
+            <textarea id="toolDescription" placeholder="Brief description of the tool"></textarea>
+            <label for="toolNotes">Notes/Instructions (optional):</label>
+            <textarea id="toolNotes" placeholder="Any specific notes for using this tool"></textarea>
+            <label for="toolCommandTemplate">Command Template:</label>
+            <input type="text" id="toolCommandTemplate" placeholder="e.g., python3 tools/myscript.py {{input1}} -o {{input2}}">
+            <small>Use `{{input_id}}` for placeholders that match Input Field IDs.</small>
 
-        <div class="panel" id="holehe-panel">
-            <h3>Holehe Email Check</h3>
-            <div class="input-group">
-                <input type="email" id="holehe-email" placeholder="Enter email address">
-                <button onclick="runTool('holehe')">Check</button>
-            </div>
-            <textarea id="holehe-output" readonly placeholder="Results will appear here..."></textarea>
-        </div>
+            <label for="toolOutputFilenamePattern">Output Filename Pattern (optional):</label>
+            <input type="text" id="toolOutputFilenamePattern" placeholder="Example: tool_name_input_value_timestamp.txt">
+            <small>Use placeholders like: `{{TOOL_ID}}`, `{{TOOL_NAME_SANITIZED}}`, `{{INPUT__field_id}}`, `{{TIMESTAMP}}`, `{{UUID}}`</small>
 
-        <div class="panel" id="ghunt-panel">
-            <h3>GHunt Email Investigation</h3>
-            <p class="tool-note">Note: GHunt requires local cookie configuration and authentication. Full functionality via web server is complex and may require manual server-side setup.</p>
-            <div class="input-group">
-                <input type="email" id="ghunt-email" placeholder="Enter target Gmail address or Gaia ID">
-                <button onclick="runTool('ghunt')">Investigate</button>
-            </div>
-            <textarea id="ghunt-output" readonly placeholder="Results will appear here... Ensure GHunt is configured on the server."></textarea>
-        </div>
 
-        <div class="panel" id="ipdomain-panel">
-            <h3>IP/Domain Information (Whois, Dig)</h3>
-            <div class="input-group">
-                <input type="text" id="ipdomain-target" placeholder="Enter IP or Domain">
-                <button onclick="runTool('ipdomain')">Get Info</button>
-            </div>
-            <textarea id="ipdomain-output" readonly placeholder="WHOIS and DNS lookup results..."></textarea>
-        </div>
+            <h4>Input Fields Configuration:</h4>
+            <div id="inputFieldsList"></div>
+            <button type="button" onclick="addInputFieldConfig()">+ Add Input Field</button>
 
-        <div class="panel" id="theharvester-panel">
-            <h3>TheHarvester</h3>
-            <p class="tool-note">Gathers emails, subdomains, hosts from public sources. Can be slow.</p>
-            <div class="input-group">
-                <input type="text" id="theharvester-domain" placeholder="Enter domain (e.g., example.com)">
-                <select id="theharvester-source" style="width: calc(28% - 10px); padding: 10px; border: 1px solid #ced4da; border-radius: 4px;">
-                    <option value="google,bing">google,bing</option>
-                    <option value="all">all (very slow)</option>
-                    <option value="baidu">baidu</option>
-                    <option value="linkedin">linkedin</option>
-                    <option value="twitter">twitter</option>
-                </select>
-                <button onclick="runTool('theharvester')">Harvest</button>
+            <h4>Cloning & Execution (Optional):</h4>
+            <input type="checkbox" id="toolRequiresClone" onchange="toggleCloneOptions()"> <label for="toolRequiresClone" style="display:inline; font-weight:normal;">Requires Git Clone?</label>
+            <div id="cloneOptions" style="display:none; margin-left:20px; padding-top:10px; border-left:2px solid #eee;">
+                <label for="toolCloneUrl">Git Clone URL:</label>
+                <input type="url" id="toolCloneUrl" placeholder="https://github.com/user/repo.git">
+                <label for="toolRequirementsFile">Requirements File Path (relative to cloned dir, optional):</label>
+                <input type="text" id="toolRequirementsFile" placeholder="e.g., requirements.txt">
+                <input type="checkbox" id="toolRunInClonedDirectory"> <label for="toolRunInClonedDirectory" style="display:inline; font-weight:normal;">Run command from inside the cloned directory?</label>
             </div>
-            <textarea id="theharvester-output" readonly placeholder="Results from TheHarvester..."></textarea>
+            <button id="saveToolButton" onclick="saveTool()">Save Tool</button>
+            <div id="installationLog" style="display:none;"></div>
         </div>
+    </div>
 
-        <div class="panel" id="sublist3r-panel">
-            <h3>Sublist3r Subdomain Enumeration</h3>
-            <div class="input-group">
-                <input type="text" id="sublist3r-domain" placeholder="Enter domain (e.g., example.com)">
-                <button onclick="runTool('sublist3r')">Find Subdomains</button>
-            </div>
-            <textarea id="sublist3r-output" readonly placeholder="Subdomain enumeration results..."></textarea>
+    <div id="historyModal" class="modal">
+        <div class="modal-content" id="historyModalContent">
+            <span class="close-btn" onclick="closeHistoryModal()">×</span>
+            <h4 id="historyModalTitle">Execution History for Tool</h4>
+            <ul id="historyList"></ul>
+            <p id="noHistoryMessage" style="display:none; text-align:center; color:#777;">No history found for this tool.</p>
         </div>
-        
-        <div class="panel" id="metagoofil-panel">
-            <h3>Metagoofil Metadata Extraction</h3>
-            <p class="tool-note">Extracts metadata from public documents of a specific domain. Results might be extensive or require file downloads (not directly handled here).</p>
-            <div class="input-group">
-                <input type="text" id="metagoofil-domain" placeholder="Enter domain (e.g., example.com)">
-                <input type="text" id="metagoofil-filetypes" placeholder="Filetypes (e.g., pdf,doc,xls)" value="pdf,doc,xls" style="width: calc(30% - 10px);">
-                 <input type="text" id="metagoofil-limit" placeholder="Limit (e.g., 50)" value="50" style="width: calc(15% - 10px);">
-                <button onclick="runTool('metagoofil')">Extract Metadata</button>
-            </div>
-            <textarea id="metagoofil-output" readonly placeholder="Metagoofil results (paths to files or metadata summary)..."></textarea>
-        </div>
-
-        <div class="panel" id="nmap-panel">
-            <h3>Nmap Network Scanner</h3>
-            <div class="input-group">
-                <input type="text" id="nmap-target" placeholder="Enter IP or Hostname">
-                 <select id="nmap-scan-type" style="width: calc(28% - 10px); padding: 10px; border: 1px solid #ced4da; border-radius: 4px;">
-                    <option value="-F">Fast Scan (-F)</option>
-                    <option value="-sV -T4">Service Version (-sV -T4)</option>
-                    <option value="-A -T4">Aggressive (-A -T4)</option>
-                    <option value="-p- -T4">All Ports (Very Slow)</option>
-                    <option value="--script vuln">Vuln Scripts (Potentially Intrusive)</option>
-                </select>
-                <button onclick="runTool('nmap')">Scan</button>
-            </div>
-            <textarea id="nmap-output" readonly placeholder="Nmap scan results..."></textarea>
-        </div>
-
-        <div class="panel" id="dnsrecon-panel">
-            <h3>Dnsrecon DNS Enumeration</h3>
-            <div class="input-group">
-                <input type="text" id="dnsrecon-domain" placeholder="Enter domain (e.g., example.com)">
-                <select id="dnsrecon-type" style="width: calc(28% - 10px); padding: 10px; border: 1px solid #ced4da; border-radius: 4px;">
-                    <option value="std">Standard Enum (std)</option>
-                    <option value="brt">Brute-force (brt, needs wordlist)</option>
-                    <option value="axfr">Zone Transfer (axfr)</option>
-                </select>
-                <button onclick="runTool('dnsrecon')">Enumerate</button>
-            </div>
-            <textarea id="dnsrecon-output" readonly placeholder="Dnsrecon results..."></textarea>
-        </div>
-        
-        <div class="panel" id="whatweb-panel">
-            <h3>WhatWeb - Website Technologies</h3>
-            <div class="input-group">
-                <input type="text" id="whatweb-url" placeholder="Enter URL (e.g., http://example.com)">
-                <button onclick="runTool('whatweb')">Identify</button>
-            </div>
-            <textarea id="whatweb-output" readonly placeholder="Identified web technologies..."></textarea>
-        </div>
-
     </div>
 
     <script>
-        let activePanelId = null;
-        let activeListItem = null;
+        const apiUrl = '/api';
+        let currentTools = [];
+        let activeToolId = null;
+        let editingToolId = null;
+        const toolOutputDisplay = document.getElementById('toolOutputDisplay');
 
-        function showPanel(panelId, listItem) {
-            if (activePanelId) {
-                document.getElementById(activePanelId).classList.remove('active');
-            }
-            if (activeListItem) {
-                activeListItem.classList.remove('active');
-            }
-
-            const panel = document.getElementById(panelId);
-            if (panel) {
-                panel.classList.add('active');
-                activePanelId = panelId;
-            }
-            if (listItem) {
-                listItem.classList.add('active');
-                activeListItem = listItem;
-            }
+        function makeLinksClickable(text) {
+            const urlRegex = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
+            return text.replace(urlRegex, function(url) {
+                return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
+            });
         }
-
-        // Show the first panel by default or a preferred one
-        document.addEventListener('DOMContentLoaded', () => {
-            const firstToolListItem = document.querySelector('.sidebar li');
-            if (firstToolListItem) {
-                 // Default to Sherlock or any other first item
-                const defaultPanelId = firstToolListItem.getAttribute('onclick').match(/'([^']+)'/)[1];
-                showPanel(defaultPanelId, firstToolListItem);
-            }
-        });
-
-                        async function runTool(toolName) {
-            const outputElement = document.getElementById(`${toolName}-output`);
-            if (!outputElement) {
-                console.error("Output element not found for tool: " + toolName);
-                return;
-            }
-            outputElement.value = "Running, please wait...";
-            let payload = {};
-            let endpoint = `/run/${toolName}`; // This will correctly become /run/holehe for Holehe
-
-            // Gather inputs based on toolName (your existing code for this)
-            if (toolName === 'sherlock') {
-                payload.username = document.getElementById('sherlock-username').value;
-            } else if (toolName === 'holehe') {
-                payload.email = document.getElementById('holehe-email').value;
-            } else if (toolName === 'ghunt') {
-                payload.email = document.getElementById('ghunt-email').value;
-            } else if (toolName === 'ipdomain') {
-                payload.target = document.getElementById('ipdomain-target').value;
-            } else if (toolName === 'theharvester') {
-                payload.domain = document.getElementById('theharvester-domain').value;
-                payload.source = document.getElementById('theharvester-source').value;
-            } else if (toolName === 'sublist3r') {
-                payload.domain = document.getElementById('sublist3r-domain').value;
-            } else if (toolName === 'metagoofil') {
-                payload.domain = document.getElementById('metagoofil-domain').value;
-                payload.filetypes = document.getElementById('metagoofil-filetypes').value;
-                payload.limit = document.getElementById('metagoofil-limit').value;
-            } else if (toolName === 'nmap') {
-                payload.target = document.getElementById('nmap-target').value;
-                payload.scan_type = document.getElementById('nmap-scan-type').value;
-            } else if (toolName === 'dnsrecon') {
-                payload.domain = document.getElementById('dnsrecon-domain').value;
-                payload.type = document.getElementById('dnsrecon-type').value;
-            } else if (toolName === 'whatweb') {
-                payload.url = document.getElementById('whatweb-url').value;
-            }
-
+        function displayToolOutput(text, status = "neutral") {
+            toolOutputDisplay.innerHTML = makeLinksClickable(escapeHtml(text));
+            toolOutputDisplay.className = ''; 
+            if (status === "success") toolOutputDisplay.classList.add('success-output');
+            else if (status === "error") toolOutputDisplay.classList.add('error-output');
+            const statusEl = document.getElementById('currentToolStatus');
+            statusEl.textContent = status === "success" ? "Status: Success" : (status === "error" ? "Status: Error (see output)" : "");
+            statusEl.className = status === "success" ? "status-success" : (status === "error" ? "status-error" : "");
+        }
+        function escapeHtml(unsafe) { 
+            if (typeof unsafe !== 'string') return '';
+            return unsafe.replace(/&/g, "&").replace(/</g, "<").replace(/>/g, ">").replace(/"/g, "").replace(/'/g, "'");
+        }
+        async function fetchTools() {
             try {
-                const response = await fetch(endpoint, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(payload),
-                });
-
-                // Check if the response status indicates an error (like 404)
-                if (!response.ok) { // response.ok is true for statuses 200-299
-                    const errorText = await response.text(); // Get the HTML error page content
-                    outputElement.value = `Server Error: ${response.status} ${response.statusText}\n\n--- Server Response ---\n${errorText}`;
-                    console.error("Server error response (likely HTML for 404 or 500):", errorText);
-                    return; // Stop further processing
-                }
-
-                // If response.ok, then it should be JSON (or an error from our app formatted as JSON)
-                const data = await response.json();
-                if (data.error) {
-                    outputElement.value = `Tool Error: ${data.error}`;
-                } else {
-                    outputElement.value = data.output;
-                }
-
-            } catch (error) { // Catches network failures or if response.json() fails on unexpected content
-                outputElement.value = `Client-side error or failed to connect: ${error}\n\nCheck browser console (F12 -> Console and Network tabs) and server logs for more details. The server might be down or the endpoint is incorrect.`;
-                console.error("Fetch/JSON parsing error details:", error);
-            }
+                const response = await fetch(`${apiUrl}/tools`);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                currentTools = await response.json();
+                renderToolList();
+            } catch (error) { console.error("Failed to fetch tools:", error); alert("Error fetching tools. Check console."); }
         }
+        function renderToolList() {
+            const toolListUl = document.getElementById('toolList');
+            toolListUl.innerHTML = '';
+            if (currentTools.length === 0) { toolListUl.innerHTML = '<p style="padding:10px; text-align:center; color:#777;">No tools. Click "Add New Tool".</p>'; }
+            currentTools.forEach(tool => {
+                const li = document.createElement('li'); li.classList.add('tool-item'); li.dataset.toolId = tool.id;
+                const nameSpan = document.createElement('span'); nameSpan.classList.add('tool-item-name'); nameSpan.textContent = tool.name; nameSpan.onclick = () => selectTool(tool.id); li.appendChild(nameSpan);
+                const actionsDiv = document.createElement('div'); actionsDiv.classList.add('tool-actions');
+                const historyBtn = document.createElement('button'); historyBtn.textContent = 'Hist'; historyBtn.classList.add('history-btn'); historyBtn.title = "View History"; historyBtn.onclick = (e) => { e.stopPropagation(); openHistoryModal(tool.id, tool.name); };
+                const editBtn = document.createElement('button'); editBtn.textContent = 'Edit'; editBtn.title = "Edit Tool"; editBtn.onclick = (e) => { e.stopPropagation(); openToolModal(tool.id); };
+                const deleteBtn = document.createElement('button'); deleteBtn.textContent = 'Del'; deleteBtn.title = "Delete Tool"; deleteBtn.onclick = (e) => { e.stopPropagation(); deleteTool(tool.id, tool.name); };
+                actionsDiv.appendChild(historyBtn); actionsDiv.appendChild(editBtn); actionsDiv.appendChild(deleteBtn); li.appendChild(actionsDiv); toolListUl.appendChild(li);
+            });
+        }
+        function selectTool(toolId, fromHistoryOutput = null) {
+            activeToolId = toolId;
+            const tool = currentTools.find(t => t.id === toolId); if (!tool) return;
+            document.querySelectorAll('.sidebar li.tool-item').forEach(li => li.classList.remove('active'));
+            const activeLi = document.querySelector(`.sidebar li.tool-item[data-tool-id="${toolId}"]`); if(activeLi) activeLi.classList.add('active');
+            document.getElementById('welcomePanel').classList.remove('active');
+            const toolRunPanel = document.getElementById('toolRunPanel'); toolRunPanel.classList.add('active');
+            document.getElementById('currentToolName').textContent = tool.name;
+            const descriptionEl = document.getElementById('currentToolDescription'); descriptionEl.style.display = tool.description ? (descriptionEl.textContent = tool.description, 'block') : 'none';
+            const notesEl = document.getElementById('currentToolNotes'); notesEl.style.display = tool.notes ? (notesEl.textContent = "Notes: " + tool.notes, 'block') : 'none';
+            const inputsContainer = document.getElementById('toolInputsContainer'); inputsContainer.innerHTML = ''; 
+            tool.input_fields.forEach(field => {
+                const group = document.createElement('div'); group.classList.add('input-group');
+                const label = document.createElement('label'); label.htmlFor = `tool-input-${field.id}`; label.textContent = field.label || field.id; group.appendChild(label);
+                if (field.type === 'select') {
+                    const select = document.createElement('select'); select.id = `tool-input-${field.id}`; select.name = field.id;
+                    (field.options || []).forEach(opt => {
+                        const option = document.createElement('option'); option.value = opt.value; option.textContent = opt.text || opt.value;
+                        if (opt.value === (field.default_value || (field.options[0] ? field.options[0].value : ''))) { option.selected = true; }
+                        select.appendChild(option);
+                    }); group.appendChild(select);
+                } else {
+                    const input = document.createElement('input'); input.type = field.type || 'text'; input.id = `tool-input-${field.id}`; input.name = field.id; input.placeholder = field.placeholder || '';
+                    if (field.default_value) input.value = field.default_value; group.appendChild(input);
+                } inputsContainer.appendChild(group);
+            });
+            if (fromHistoryOutput !== null) { displayToolOutput(fromHistoryOutput, "neutral"); document.getElementById('currentToolName').textContent = `${tool.name} (Viewing History)`; }
+            else { displayToolOutput('', "neutral"); document.getElementById('currentToolStatus').textContent = ''; }
+        }
+        async function executeCurrentTool() {
+            if (!activeToolId) return;
+            const tool = currentTools.find(t => t.id === activeToolId); if (!tool) return;
+            displayToolOutput(`Running ${tool.name}, please wait...`, "neutral");
+            const payload = {};
+            tool.input_fields.forEach(field => { const inputElement = document.getElementById(`tool-input-${field.id}`); if (inputElement) payload[field.id] = inputElement.value; });
+            try {
+                const response = await fetch(`${apiUrl}/run_tool/${activeToolId}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                const data = await response.json();
+                if (!response.ok || data.error) { displayToolOutput(`Error: ${data.error || response.statusText}\n\n${data.output || ''}`, "error"); }
+                else { displayToolOutput(data.output, data.status); }
+            } catch (error) { console.error("Failed to run tool:", error); displayToolOutput(`Client-side error or failed to connect: ${error}`, "error"); }
+        }
+
+        const toolModal = document.getElementById('toolModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const toolIdInput = document.getElementById('toolId');
+        const toolNameInput = document.getElementById('toolName');
+        const toolDescriptionInput = document.getElementById('toolDescription');
+        const toolNotesInput = document.getElementById('toolNotes');
+        const toolCommandTemplateInput = document.getElementById('toolCommandTemplate');
+        const toolOutputFilenamePatternInput = document.getElementById('toolOutputFilenamePattern'); 
+        const inputFieldsListDiv = document.getElementById('inputFieldsList');
+        const toolRequiresCloneCheckbox = document.getElementById('toolRequiresClone');
+        const cloneOptionsDiv = document.getElementById('cloneOptions');
+        const toolCloneUrlInput = document.getElementById('toolCloneUrl');
+        const toolRequirementsFileInput = document.getElementById('toolRequirementsFile');
+        const toolRunInClonedDirCheckbox = document.getElementById('toolRunInClonedDirectory');
+        const installationLogDiv = document.getElementById('installationLog');
+
+        function openToolModal(id = null) { 
+            editingToolId = id;
+            installationLogDiv.textContent = ''; installationLogDiv.style.display = 'none';
+            if (id) {
+                modalTitle.textContent = 'Edit Tool';
+                const tool = currentTools.find(t => t.id === id); if (!tool) return;
+                toolIdInput.value = tool.id;
+                toolNameInput.value = tool.name;
+                toolDescriptionInput.value = tool.description || '';
+                toolNotesInput.value = tool.notes || '';
+                toolCommandTemplateInput.value = tool.command_template;
+                toolOutputFilenamePatternInput.value = tool.output_filename_pattern || ''; 
+                renderInputFieldConfigs(tool.input_fields || []);
+                toolRequiresCloneCheckbox.checked = tool.requires_clone || false;
+                cloneOptionsDiv.style.display = toolRequiresCloneCheckbox.checked ? 'block' : 'none';
+                if (tool.requires_clone) {
+                    toolCloneUrlInput.value = tool.clone_url || '';
+                    toolRequirementsFileInput.value = tool.requirements_file || '';
+                    toolRunInClonedDirCheckbox.checked = !!tool.run_in_directory;
+                }
+            } else {
+                modalTitle.textContent = 'Add New Tool';
+                toolIdInput.value = ''; toolNameInput.value = ''; toolDescriptionInput.value = ''; toolNotesInput.value = '';
+                toolCommandTemplateInput.value = '';
+                toolOutputFilenamePatternInput.value = '{{TOOL_NAME_SANITIZED}}_{{INPUT__your_main_input_id}}_{{TIMESTAMP}}.txt'; 
+                renderInputFieldConfigs([]);
+                toolRequiresCloneCheckbox.checked = false; cloneOptionsDiv.style.display = 'none';
+                toolCloneUrlInput.value = ''; toolRequirementsFileInput.value = ''; toolRunInClonedDirCheckbox.checked = false;
+            }
+            toolModal.style.display = 'block';
+        }
+        function closeToolModal() {toolModal.style.display = 'none'; editingToolId = null; }
+        function toggleCloneOptions() {cloneOptionsDiv.style.display = toolRequiresCloneCheckbox.checked ? 'block' : 'none';}
+        
+        let inputFieldConfigCounter = 0;
+        function addInputFieldConfig(field = {}) {
+            inputFieldConfigCounter++;
+            const div = document.createElement('div'); div.classList.add('input-field-config'); div.dataset.configId = inputFieldConfigCounter;
+            div.innerHTML = `
+                <label>Field ID (for template, e.g., 'username'):</label> <input type="text" class="field-id" value="${field.id || ''}" placeholder="unique_input_id">
+                <label>Display Label:</label> <input type="text" class="field-label" value="${field.label || ''}" placeholder="Username:">
+                <label>Input Type:</label> <select class="field-type"> <option value="text" ${field.type === 'text' ? 'selected' : ''}>Text</option> <option value="email" ${field.type === 'email' ? 'selected' : ''}>Email</option> <option value="url" ${field.type === 'url' ? 'selected' : ''}>URL</option> <option value="select" ${field.type === 'select' ? 'selected' : ''}>Select Dropdown</option> </select>
+                <label>Placeholder (for text inputs):</label> <input type="text" class="field-placeholder" value="${field.placeholder || ''}" placeholder="Enter value">
+                <label>Default Value (optional):</label> <input type="text" class="field-default-value" value="${field.default_value || ''}" placeholder="">
+                <label>Options (for Select, JSON: [{"value":"v1","text":"T1"},...]):</label> <textarea class="field-options" placeholder='[{"value":"opt1","text":"Option 1"}]'>${field.options ? JSON.stringify(field.options) : ''}</textarea>
+                <button type="button" onclick="removeInputFieldConfig(${inputFieldConfigCounter})" style="background-color:#dc3545; font-size:0.8em;">Remove Field</button>
+            `;
+            inputFieldsListDiv.appendChild(div);
+        }
+        function removeInputFieldConfig(configId) {const divToRemove = document.querySelector(`.input-field-config[data-config-id="${configId}"]`); if (divToRemove) inputFieldsListDiv.removeChild(divToRemove); }
+        function renderInputFieldConfigs(fields) {inputFieldsListDiv.innerHTML = ''; inputFieldConfigCounter = 0; (fields || []).forEach(field => addInputFieldConfig(field)); }
+
+        async function saveTool() {
+            const toolData = {
+                name: toolNameInput.value.trim(), description: toolDescriptionInput.value.trim(), notes: toolNotesInput.value.trim(), command_template: toolCommandTemplateInput.value.trim(),
+                output_filename_pattern: toolOutputFilenamePatternInput.value.trim() || '{{TOOL_NAME_SANITIZED}}_{{INPUT__default_input}}_{{TIMESTAMP}}.txt',
+                input_fields: [], requires_clone: toolRequiresCloneCheckbox.checked,
+                clone_url: toolRequiresCloneCheckbox.checked ? toolCloneUrlInput.value.trim() : '',
+                requirements_file: toolRequiresCloneCheckbox.checked ? toolRequirementsFileInput.value.trim() : '',
+                run_in_cloned_directory: toolRequiresCloneCheckbox.checked ? toolRunInClonedDirCheckbox.checked : false
+            };
+            if (!toolData.name || !toolData.command_template) { alert("Tool Name and Command Template are required."); return; }
+            document.querySelectorAll('.input-field-config').forEach(div => {
+                const fieldConf = {
+                    id: div.querySelector('.field-id').value.trim(), label: div.querySelector('.field-label').value.trim(), type: div.querySelector('.field-type').value,
+                    placeholder: div.querySelector('.field-placeholder').value.trim(), options_str: div.querySelector('.field-options').value.trim(), default_value: div.querySelector('.field-default-value').value.trim()
+                };
+                if (fieldConf.id && fieldConf.label) {
+                    if (fieldConf.type === 'select' && fieldConf.options_str) { try { fieldConf.options = JSON.parse(fieldConf.options_str); } catch (e) { alert(`Invalid JSON for field ${fieldConf.id}`); fieldConf.options = []; }}
+                    delete fieldConf.options_str; toolData.input_fields.push(fieldConf);
+                }});
+            installationLogDiv.textContent = 'Saving...'; installationLogDiv.style.display = 'block';
+            let url = `${apiUrl}/tools`; let method = 'POST';
+            if (editingToolId) { url = `${apiUrl}/tools/${editingToolId}`; method = 'PUT'; toolData.id = editingToolId; }
+            try {
+                const response = await fetch(url, { method: method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(toolData) });
+                const result = await response.json();
+                if (!response.ok) {
+                    alert(`Error: ${result.error || response.statusText}\nDetails: ${result.details || ''}`);
+                    installationLogDiv.textContent = `Error: ${result.error || response.statusText}\nDetails:\n${result.details || result.installation_log || ''}`;
+                } else {
+                    alert(result.message || "Tool saved!"); installationLogDiv.textContent = result.installation_log || "No log.";
+                    if (!result.installation_log) installationLogDiv.style.display = 'none';
+                    closeToolModal(); fetchTools(); 
+                }} catch (error) { console.error("Failed to save tool:", error); alert(`Client error: ${error}`); installationLogDiv.textContent = `Client error: ${error}`; }
+        }
+        async function deleteTool(toolId, toolName) {
+            if (!confirm(`Delete "${toolName}"? May delete cloned directory.`)) return;
+            try {
+                const response = await fetch(`${apiUrl}/tools/${toolId}`, { method: 'DELETE' }); const result = await response.json();
+                if (!response.ok) { alert(`Error: ${result.error || response.statusText}`); }
+                else {
+                    alert(result.message || "Deleted!");
+                    if (activeToolId === toolId) { document.getElementById('toolRunPanel').classList.remove('active'); document.getElementById('welcomePanel').classList.add('active'); activeToolId = null; }
+                    fetchTools();
+                }} catch (error) { console.error("Failed to delete tool:", error); alert(`Client error: ${error}`); }
+        }
+
+        const historyModal = document.getElementById('historyModal');
+        const historyModalTitle = document.getElementById('historyModalTitle');
+        const historyListUl = document.getElementById('historyList');
+        const noHistoryMessage = document.getElementById('noHistoryMessage');
+
+        async function openHistoryModal(toolId, toolName) {
+            historyModalTitle.textContent = `History for ${toolName}`; historyListUl.innerHTML = '<li>Loading...</li>';
+            noHistoryMessage.style.display = 'none'; historyModal.style.display = 'block';
+            try {
+                const response = await fetch(`${apiUrl}/history/${toolId}`); if (!response.ok) throw new Error(`HTTP error! ${response.status}`);
+                const historyEntries = await response.json(); historyListUl.innerHTML = ''; 
+                if (historyEntries.length === 0) { noHistoryMessage.style.display = 'block'; }
+                else {
+                    historyEntries.forEach(entry => {
+                        const li = document.createElement('li'); const date = new Date(entry.timestamp).toLocaleString();
+                        let inputsStr = Object.entries(entry.inputs || {}).map(([k,v]) => `${k}: ${v}`).join(', '); if (inputsStr.length > 70) inputsStr = inputsStr.substring(0, 70) + "...";
+                        li.innerHTML = `<strong>${date}</strong> - File: <i>${entry.output_file.split('/').pop()}</i> <small>Status: ${entry.status}</small><small>Inputs: ${inputsStr || 'N/A'}</small>`;
+                        li.onclick = () => loadHistoryOutput(entry.output_file, toolId, toolName); historyListUl.appendChild(li);
+                    }); }} catch (error) { console.error("Failed to fetch history:", error); historyListUl.innerHTML = `<li>Error: ${error.message}</li>`; }
+        }
+        function closeHistoryModal() {historyModal.style.display = 'none'; }
+        async function loadHistoryOutput(outputFilePath, originalToolId, originalToolName) {
+            closeHistoryModal(); selectTool(originalToolId); displayToolOutput(`Loading from ${outputFilePath}...`, "neutral");
+            try {
+                const response = await fetch(`${apiUrl}/history_file_content?filepath=${encodeURIComponent(outputFilePath)}`); if (!response.ok) throw new Error(`HTTP error! ${response.status}`);
+                const data = await response.json();
+                if (data.error) { displayToolOutput(`Error: ${data.error}`, "error"); }
+                else { selectTool(originalToolId, data.content); }
+            } catch (error) { console.error("Failed to load history output:", error); displayToolOutput(`Error: ${error.message}`, "error"); }
+        }
+        window.onclick = function(event) {if (event.target == toolModal) closeToolModal(); if (event.target == historyModal) closeHistoryModal(); }
+        document.addEventListener('DOMContentLoaded', fetchTools);
     </script>
 </body>
 </html>
