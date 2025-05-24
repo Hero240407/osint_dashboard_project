@@ -19,7 +19,7 @@ This software is intended to help users learn about OSINT techniques and cyberse
 
 ## License
 
-This project is open source and licensed under the **MIT License**. See the `LICENSE` file for more details.
+This project is open source and licensed under the **MIT License** - see the `LICENSE` file for details.
 
 ## Features
 
@@ -80,12 +80,12 @@ You have two primary methods for setting up the OSINT Dashboard: using the inter
 The `setup.sh` script automates most of the installation process, including system dependencies, Python packages, and cloning/setting up common OSINT tools.
 
 1.  **Download/Clone Project:**
-    If you haven't already, get the project files. If it's a Git repository:
+    If you haven't already, get the project files.
     ```bash
-    git clone <repository_url>
+    git clone https://github.com/Hero240407/osint_dashboard_project.git
     cd osint_dashboard_project 
     ```
-    (Replace `<repository_url>` and `osint_dashboard_project` with actual names). Ensure `setup.sh`, `app.py`, `data.json`, `history.json` (can be empty `[]`), and the `templates/index.html` file are in this directory.
+    Ensure `setup.sh`, `app.py`, `data.json`, `history.json` (can be empty `[]`), and the `templates/index.html` file are in this directory.
 
 2.  **Make `setup.sh` Executable:**
     ```bash
@@ -147,11 +147,10 @@ If you prefer to install everything manually or the setup script encounters issu
         cd tools
         git clone https://github.com/sherlock-project/sherlock.git sherlock 
         cd sherlock
-        # Sherlock's requirements are often in a nested 'sherlock' directory
         if [ -f sherlock/requirements.txt ]; then pip install -r sherlock/requirements.txt; fi
         cd ../.. 
         ```
-        *In `data.json`, ensure:* `"clone_dir": "tools/sherlock"`, `"run_in_directory": "tools/sherlock"`, `"requirements_file": "sherlock/requirements.txt"` (if applicable to your `app.py` version's `add_tool` logic for this field).
+        *In `data.json`, ensure:* `"clone_dir": "tools/sherlock"`, `"run_in_directory": "tools/sherlock"`, `"requirements_file": "sherlock/requirements.txt"`.
 
     *   **Sublist3r:**
         ```bash
@@ -168,9 +167,7 @@ If you prefer to install everything manually or the setup script encounters issu
         cd tools
         git clone https://github.com/mxrch/GHunt.git GHunt
         cd GHunt 
-        # GHunt's main files and requirements might be in a nested 'GHunt' directory
         if [ -f GHunt/requirements.txt ]; then (cd GHunt && pip install -r requirements.txt); fi
-        # CRITICAL: Generate cookies
         (cd GHunt && python3 check_and_gen_cookies.py) 
         cd ../..
         ```
@@ -182,7 +179,6 @@ If you prefer to install everything manually or the setup script encounters issu
         git clone https://github.com/laramies/metagoofil.git metagoofil
         cd ../..
         ```
-        (Metagoofil typically doesn't have pip requirements; ensure `libimage-exiftool-perl` is installed via `apt`).
         *In `data.json`, ensure:* `"clone_dir": "tools/metagoofil"`, `"run_in_directory": "tools/metagoofil"`.
 
     **Note on `data.json` paths:** The `clone_dir` and `run_in_directory` fields in `data.json` tell `app.py` where to find these tools relative to the project root. Ensure they match your manual cloning structure.
@@ -210,17 +206,17 @@ If you prefer to install everything manually or the setup script encounters issu
     Open your web browser and navigate to `http://YOUR_SERVER_IP:5001`.
     *   `YOUR_SERVER_IP` is the IP address of the machine running the Flask app.
     *   If running locally, you can usually use `http://localhost:5001` or `http://127.0.0.1:5001`.
-    *   The `app.py` script runs on `0.0.0.0` by default, meaning it listens on all available network interfaces. You can change `host='0.0.0.0'` to `host='localhost'` in the `app.run(...)` line in `app.py` if you only want it accessible from the machine it's running on.
+    *   The `app.py` script runs on `0.0.0.0` by default. You can change `host='0.0.0.0'` to `host='localhost'` in the `app.run(...)` line in `app.py` for local access only.
 
 ## Usage
 
 *   **Sidebar:** Select a tool from the list.
-*   **Tool Panel:** Input required information (usernames, domains, etc.).
-*   **Run Tool:** Click the "Run Tool" button. Output appears below. URLs in the output are clickable.
+*   **Tool Panel:** Input required information.
+*   **Run Tool:** Click the "Run Tool" button. Output appears below. URLs are clickable.
 *   **Manage Tools:**
-    *   **Add New Tool:** Click the button at the bottom of the sidebar. Configure name, command template (`{{input_id}}` for placeholders), input fields, output filename pattern, and optional Git cloning.
-    *   **Edit/Delete:** Buttons next to each tool in the sidebar.
-*   **History:** Click the "Hist" button next to a tool to view past executions. Click a history entry to load its saved output.
+    *   **Add New Tool:** Configure name, command template (`{{input_id}}` for placeholders), input fields, output filename pattern, and optional Git cloning.
+    *   **Edit/Delete:** Buttons next to each tool.
+*   **History:** Click "Hist" next to a tool to view past executions. Click an entry to load its saved output.
 
 ## Contributing & Feedback
 
@@ -229,16 +225,12 @@ This project is open source and contributions are welcome! If you have suggestio
 *   **Open an Issue:** Use the GitHub Issues tracker for bugs or feature discussions.
 *   **Pull Requests:** Feel free to fork the repository and submit pull requests.
 
-The creator is open to comments, recommendations, and collaboration to improve this dashboard.
+The creator ([Hero240407](https://github.com/Hero240407)) is open to comments, recommendations, and collaboration to improve this dashboard.
 
 ## Troubleshooting
 
-*   **"Command not found" (for system tools like Nmap, ffuf):** Ensure the tool is installed globally (`sudo apt install <tool_name>`) and is in your system's PATH.
-*   **Python errors in `app.py`:** Check Flask server console output. Ensure all Python dependencies from `pip install` are correctly installed in the active virtual environment.
-*   **Tool cloning/requirements errors (from UI or `setup.sh`):**
-    *   Check server's internet connectivity.
-    *   Verify Git URLs are correct.
-    *   Ensure `pip` can install packages (permissions, network).
-    *   For tools with nested `requirements.txt` (like Sherlock, GHunt), ensure the `requirements_file` path in `data.json` (when adding via UI) or the `setup.sh` script is correct relative to the tool's cloned root.
-*   **GHunt not working:** Almost always due to missing or invalid `cookies.json`. Re-run `check_and_gen_cookies.py` in GHunt's directory.
-*   **Jinja2 Template Errors:** If you modify `index.html` and use `{{ ... }}` in a way Jinja2 misinterprets, you might see these. Standard HTML attributes like `placeholder` should not contain active Jinja2 template tags.
+*   **"Command not found" (Nmap, ffuf, etc.):** Ensure the tool is installed globally (`sudo apt install <tool_name>`).
+*   **Python errors:** Check Flask console output. Ensure Python dependencies are in the active virtual environment.
+*   **Tool cloning/requirements errors:** Check internet, Git URLs. For nested `requirements.txt`, verify paths.
+*   **GHunt not working:** Likely missing/invalid `GHunt/cookies.json`. Re-run `check_and_gen_cookies.py`.
+*   **Jinja2 Template Errors:** Avoid active Jinja2 tags `{{ ... }}` in HTML attributes like `placeholder` if they are not meant to be rendered by Flask.
