@@ -1,158 +1,203 @@
-# OSINT & Security Dashboard
+# OSINT & Security Dashboard V1.2
 
-A Flask-based web application designed to provide a centralized interface for running various open-source intelligence (OSINT) and cybersecurity command-line tools. This dashboard allows users to easily execute scans and investigations without needing to remember or type complex command-line arguments for each tool.
+**A dynamic, Flask-based web application providing a centralized interface for executing various open-source intelligence (OSINT) and cybersecurity command-line tools.**
 
-## Overview
+This dashboard allows users to:
+*   Run pre-configured and user-added OSINT tools through an easy-to-use web UI.
+*   Manage tool configurations (add, edit, delete).
+*   View execution history for each tool.
+*   Save tool outputs to files.
+*   Make links in tool output clickable.
 
-The dashboard features a sidebar for selecting different tools and a main content area where users can input targets (usernames, emails, domains, IPs, etc.) and view the output from the selected tool. This project integrates several popular OSINT tools, making them accessible through a unified web UI.
+**Project Status:** Actively Developed. Open to contributions, feature requests, and feedback!
+
+## Disclaimer
+
+⚠️ **FOR EDUCATIONAL AND AUTHORIZED RESEARCH PURPOSES ONLY.** ⚠️
+
+This software is intended to help users learn about OSINT techniques and cybersecurity tools in a controlled environment. The user is solely responsible for their actions and for ensuring that their use of this software complies with all applicable local, state, national, and international laws and regulations. The creators and contributors of this project assume NO liability and are NOT responsible for any misuse or damage caused by this program. **Always obtain explicit, written permission before scanning or investigating any target that you do not own or have prior authorization to test.**
+
+## License
+
+This project is open source and licensed under the **MIT License**. See the `LICENSE` file for more details.
 
 ## Features
 
-*   **Web-based Interface:** Easy-to-use UI built with HTML, CSS, and JavaScript.
-*   **Flask Backend:** Python-based backend to securely execute command-line tools.
+*   **Dynamic Web Interface:** Built with HTML, CSS, and JavaScript.
+*   **Flask Backend:** Python-based server to manage tools and execute commands.
 *   **Centralized Tooling:** Access multiple OSINT tools from a single dashboard.
-*   **Integrated Tools:**
-    *   **Sherlock:** Hunt for social media accounts by username.
-    *   **Holehe:** Check if an email is used on different sites (breaches, social media).
-    *   **GHunt:** Investigate Google accounts (requires cookie setup).
-    *   **IP/Domain Info:** Perform `whois` and `dig` (DNS) lookups.
-    *   **TheHarvester:** Gather emails, subdomains, hosts, and open ports.
-    *   **Sublist3r:** Enumerate subdomains of a website.
-    *   **Metagoofil:** Extract metadata from public documents.
-    *   **Nmap:** Network scanner for port scanning and service discovery.
-    *   **Dnsrecon:** DNS enumeration script.
-    *   **WhatWeb:** Identify technologies used on websites.
-*   **Extensible:** Designed to potentially incorporate more tools in the future.
+*   **User-Managed Tool Configuration:**
+    *   Add new tools with custom command templates, input fields, and output filename patterns.
+    *   Edit existing tool configurations.
+    *   Delete tools.
+    *   Support for tools requiring `git clone` and `pip install requirements.txt`.
+*   **Execution History:**
+    *   Logs each tool run with inputs, status, and a link to the saved output file.
+    *   View history per tool.
+    *   Load and display past results.
+*   **File-Based Output:** Full tool outputs are saved to files in a `data/` directory.
+*   **Clickable Links:** URLs in tool output are automatically converted to clickable links.
+*   **Interactive Setup Script (`setup.sh`):** Guides users through dependency and tool installation.
+
+### Pre-configured Tools (via `data.json` and installable with `setup.sh`):
+
+*   **Holehe Email Check:** Checks if an email is used on various sites.
+*   **Nmap Network Scan:** Network exploration and port scanner.
+*   **IP/Domain Info:** Performs WHOIS and DIG lookups.
+*   **TheHarvester:** Gathers emails, subdomains, hosts, etc.
+*   **Dnsrecon DNS Enumeration:** DNS enumeration and reconnaissance.
+*   **WhatWeb - Website Technologies:** Identifies technologies used on websites.
+*   **FFUF - Domain File Finder:** Fast web fuzzer for content discovery.
+*   **Sherlock Username Search (Cloned):** Hunts for social media accounts by username.
+*   **Sublist3r Subdomain Enum (Cloned):** Enumerates subdomains.
+*   **GHunt Google Acct Invest. (Cloned):** Investigates Google accounts (requires manual cookie setup).
+*   **Metagoofil Metadata Extr. (Cloned):** Extracts metadata from public documents.
 
 ## Tech Stack
 
-*   **Backend:** Python, Flask
-*   **Frontend:** HTML, CSS, JavaScript
-*   **OSINT Tools (Command-Line):**
-    *   Sherlock
-    *   Holehe
-    *   GHunt
-    *   whois
-    *   dig (or nslookup)
-    *   TheHarvester
-    *   Sublist3r
-    *   Metagoofil
-    *   Nmap
-    *   Dnsrecon
-    *   WhatWeb
+*   **Backend:** Python 3.8+, Flask
+*   **Frontend:** HTML5, CSS3, JavaScript (Vanilla)
+*   **Data Storage:** JSON files (`data.json` for tool configs, `history.json` for run logs)
+*   **OSINT Tools:** Various command-line utilities (see above).
 *   **Environment Management:** Python `venv`
+*   **Setup:** Bash Script (`setup.sh`)
 
 ## Prerequisites
 
-Before you begin, ensure you have the following installed on your Ubuntu-based Linux system:
+*   **Operating System:** Linux (developed/tested on Ubuntu-based systems).
+*   **Python:** Version 3.8 or higher.
+*   **`git`**: For cloning tool repositories.
+*   **`curl`**: Used by the setup script and potentially some tools.
+*   **`pip`**: Python package installer.
+*   **`python3-venv`**: For creating Python virtual environments.
 
-*   Python 3.8+
-*   `pip` (Python package installer)
-*   `python3-venv` (for creating virtual environments)
-*   `git` (for cloning repositories)
-*   The following system packages:
-    *   `whois`
-    *   `nmap`
-    *   `dnsrecon`
-    *   `whatweb`
-    *   `libimage-exiftool-perl` (for Metagoofil)
-    *   `curl` (optional, but useful)
+## Installation
 
-You can install most system prerequisites with:
-```bash
-sudo apt update && sudo apt upgrade -y
-sudo apt install -y python3 python3-pip python3-venv git whois nmap dnsrecon whatweb libimage-exiftool-perl curl
-```
+You have two primary methods for setting up the OSINT Dashboard: using the interactive `setup.sh` script (recommended for most users) or performing a manual installation.
 
-## Installation and Setup
+### Method 1: Using the Interactive Setup Script (Recommended)
 
-Follow these steps to set up the OSINT Dashboard on your server:
+The `setup.sh` script automates most of the installation process, including system dependencies, Python packages, and cloning/setting up common OSINT tools.
 
-1.  **Clone the Project (or Create Project Directory):**
-    If you have this README as part of a Git repository, clone it. Otherwise, create the main project directory:
+1.  **Download/Clone Project:**
+    If you haven't already, get the project files. If it's a Git repository:
+    ```bash
+    git clone <repository_url>
+    cd osint_dashboard_project 
+    ```
+    (Replace `<repository_url>` and `osint_dashboard_project` with actual names). Ensure `setup.sh`, `app.py`, `data.json`, `history.json` (can be empty `[]`), and the `templates/index.html` file are in this directory.
+
+2.  **Make `setup.sh` Executable:**
+    ```bash
+    chmod +x setup.sh
+    ```
+
+3.  **Run the Setup Script:**
+    It's highly recommended to run the script from within a dedicated, preferably empty, project directory. The script will guide you through creating/activating a Python virtual environment.
+    ```bash
+    ./setup.sh
+    ```
+    *   The script will first check if you are in an empty directory and if a virtual environment is active/needs creation.
+    *   It will then prompt you to install essential system packages (like `python3-pip`, `git`) and optional OSINT system tools (like `nmap`, `ffuf`) via `apt`. This step will require `sudo` privileges.
+    *   Next, it will ask which of the common clonable OSINT tools (Sherlock, Sublist3r, etc.) you wish to install or update.
+    *   Follow the on-screen prompts.
+    *   **Consider using `sudo ./setup.sh` only if you fully understand the script's actions and trust its source, as it invokes `sudo apt install`.** The script is designed to ask for `sudo` only when needed for `apt` commands.
+
+4.  **Post-Setup Steps (CRITICAL - Read output from `setup.sh`):**
+    *   **GHunt Cookies:** If you installed GHunt, you **MUST** manually generate its `cookies.json` file. Navigate to where GHunt was cloned (e.g., `./tools/GHunt/GHunt/`) and run `python3 check_and_gen_cookies.py`.
+    *   **`data.json` Paths:** Verify that the `clone_dir` and `run_in_directory` paths in your `data.json` file match the actual locations where tools were cloned by the `setup.sh` script (e.g., `tools/sherlock`, `tools/Sublist3r`). The script attempts to use these standard names.
+    *   **Create `data` directory:** The `setup.sh` script now creates the `./data` and `./tools` directories. If `./data` is still missing for any reason: `mkdir data`.
+    *   Review any warnings or error messages printed by the `setup.sh` script regarding skipped or failed installations.
+
+### Method 2: Manual Installation
+
+If you prefer to install everything manually or the setup script encounters issues on your specific system:
+
+1.  **Project Directory:**
+    Create your project directory and navigate into it:
     ```bash
     mkdir osint_dashboard_project
     cd osint_dashboard_project
     ```
+    Place `app.py`, `data.json` (can be copied from this README or started fresh), `history.json` (empty `[]`), and the `templates/index.html` file here.
 
-2.  **Create and Activate Python Virtual Environment:**
+2.  **Python Virtual Environment:**
     ```bash
     python3 -m venv venv
     source venv/bin/activate
     ```
-    Your terminal prompt should now start with `(venv)`.
 
-3.  **Install Core Python Dependencies:**
+3.  **Install Core Python Packages (into venv):**
     ```bash
     pip install Flask holehe theHarvester
     ```
 
-4.  **Clone and Set Up External CLI Tools:**
-    These tools will be cloned into subdirectories within your project.
+4.  **Install System-Wide OSINT Tools (via `apt`):**
+    These are tools that the dashboard can call directly if they are in your system's PATH.
+    ```bash
+    sudo apt update
+    sudo apt install -y python3-pip python3-venv git whois nmap dnsrecon whatweb libimage-exiftool-perl curl ffuf
+    ```
+
+5.  **Manually Clone and Set Up Tools:**
+    Create a `./tools` directory: `mkdir tools`. Then, for each tool defined in `data.json` that has `"requires_clone": true`:
 
     *   **Sherlock:**
         ```bash
-        git clone https://github.com/sherlock-project/sherlock.git ./sherlock
-        (cd sherlock && pip install -r requirements.txt)
+        cd tools
+        git clone https://github.com/sherlock-project/sherlock.git sherlock 
+        cd sherlock
+        # Sherlock's requirements are often in a nested 'sherlock' directory
+        if [ -f sherlock/requirements.txt ]; then pip install -r sherlock/requirements.txt; fi
+        cd ../.. 
         ```
+        *In `data.json`, ensure:* `"clone_dir": "tools/sherlock"`, `"run_in_directory": "tools/sherlock"`, `"requirements_file": "sherlock/requirements.txt"` (if applicable to your `app.py` version's `add_tool` logic for this field).
 
     *   **Sublist3r:**
         ```bash
-        git clone https://github.com/aboul3la/Sublist3r.git ./Sublist3r
-        (cd Sublist3r && pip install -r requirements.txt)
+        cd tools
+        git clone https://github.com/aboul3la/Sublist3r.git Sublist3r
+        cd Sublist3r
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        cd ../..
         ```
+        *In `data.json`, ensure:* `"clone_dir": "tools/Sublist3r"`, `"run_in_directory": "tools/Sublist3r"`, `"requirements_file": "requirements.txt"`.
 
     *   **GHunt:**
         ```bash
-        git clone https://github.com/mxrch/GHunt.git ./GHunt
-        (cd GHunt && pip install -r requirements.txt)
+        cd tools
+        git clone https://github.com/mxrch/GHunt.git GHunt
+        cd GHunt 
+        # GHunt's main files and requirements might be in a nested 'GHunt' directory
+        if [ -f GHunt/requirements.txt ]; then (cd GHunt && pip install -r requirements.txt); fi
+        # CRITICAL: Generate cookies
+        (cd GHunt && python3 check_and_gen_cookies.py) 
+        cd ../..
         ```
-        **VERY IMPORTANT for GHunt:** You must manually configure GHunt with Google cookies.
-        Navigate into the `GHunt` directory and run:
-        ```bash
-        cd GHunt
-        python3 check_and_gen_cookies.py
-        cd ..
-        ```
-        Follow the on-screen instructions. This step is crucial for GHunt to function. A `cookies.json` file will be created in the `GHunt` directory.
+        *In `data.json`, ensure:* `"clone_dir": "tools/GHunt"`, `"run_in_directory": "tools/GHunt"`, `"requirements_file": "GHunt/requirements.txt"`.
 
     *   **Metagoofil:**
         ```bash
-        git clone https://github.com/laramies/metagoofil.git ./metagoofil
+        cd tools
+        git clone https://github.com/laramies/metagoofil.git metagoofil
+        cd ../..
         ```
-        (Metagoofil typically relies on system tools like `exiftool` rather than Python packages from `requirements.txt`.)
+        (Metagoofil typically doesn't have pip requirements; ensure `libimage-exiftool-perl` is installed via `apt`).
+        *In `data.json`, ensure:* `"clone_dir": "tools/metagoofil"`, `"run_in_directory": "tools/metagoofil"`.
 
-5.  **Place Application Files:**
-    *   Copy your `app.py` (Flask backend code) into the root of the `osint_dashboard_project` directory.
-    *   Create a `templates` directory in the root:
-        ```bash
-        mkdir templates
-        ```
-    *   Copy your `index.html` (frontend code) into the `templates` directory.
+    **Note on `data.json` paths:** The `clone_dir` and `run_in_directory` fields in `data.json` tell `app.py` where to find these tools relative to the project root. Ensure they match your manual cloning structure.
 
-    Your project structure should look like:
+6.  **Create `data` Directory:**
+    In your project root:
+    ```bash
+    mkdir data
     ```
-    osint_dashboard_project/
-    ├── venv/
-    ├── app.py
-    ├── templates/
-    │   └── index.html
-    ├── sherlock/
-    ├── Sublist3r/
-    ├── GHunt/         # Should contain cookies.json after setup
-    ├── metagoofil/
-    └── README.md      # This file
-    ```
-
-6.  **Verify Tool Paths in `app.py` (Optional):**
-    The provided `app.py` uses relative paths which should work with the above setup. If you've placed tools elsewhere, you might need to adjust the `*_DIR` variables at the top of `app.py`.
 
 ## Running the Application
 
-1.  **Ensure Virtual Environment is Active:**
-    If you've opened a new terminal, navigate to the project directory and activate the venv:
+1.  **Activate Virtual Environment:**
+    If not already active, navigate to your project directory and run:
     ```bash
-    cd path/to/osint_dashboard_project
     source venv/bin/activate
     ```
 
@@ -160,58 +205,40 @@ Follow these steps to set up the OSINT Dashboard on your server:
     ```bash
     python3 app.py
     ```
-    You should see output indicating the server is running, usually on `http://0.0.0.0:5001/` or `http://127.0.0.1:5001/`.
 
 3.  **Access the Dashboard:**
-    Open your web browser and navigate to `http://YOUR_SERVER_IP:5001` (replace `YOUR_SERVER_IP` with your server's actual IP address, or use `localhost` if running locally).
-
-4.  **Firewall Configuration (If Needed):**
-    If you have a firewall like `ufw` enabled, allow traffic on port 5001:
-    ```bash
-    sudo ufw allow 5001/tcp
-    sudo ufw reload
-    ```
+    Open your web browser and navigate to `http://YOUR_SERVER_IP:5001`.
+    *   `YOUR_SERVER_IP` is the IP address of the machine running the Flask app.
+    *   If running locally, you can usually use `http://localhost:5001` or `http://127.0.0.1:5001`.
+    *   The `app.py` script runs on `0.0.0.0` by default, meaning it listens on all available network interfaces. You can change `host='0.0.0.0'` to `host='localhost'` in the `app.run(...)` line in `app.py` if you only want it accessible from the machine it's running on.
 
 ## Usage
 
-*   Use the sidebar on the left to select the desired OSINT tool.
-*   The corresponding panel for the selected tool will appear in the main content area.
-*   Enter the required input (e.g., username, email, domain) into the input field(s).
-*   Click the "Run", "Search", or "Scan" button for that tool.
-*   The results from the command-line tool will be displayed in the textarea below the input fields.
-*   Please be patient, as some tools (like TheHarvester with 'all' sources, or Nmap full port scans) can take several minutes to complete.
+*   **Sidebar:** Select a tool from the list.
+*   **Tool Panel:** Input required information (usernames, domains, etc.).
+*   **Run Tool:** Click the "Run Tool" button. Output appears below. URLs in the output are clickable.
+*   **Manage Tools:**
+    *   **Add New Tool:** Click the button at the bottom of the sidebar. Configure name, command template (`{{input_id}}` for placeholders), input fields, output filename pattern, and optional Git cloning.
+    *   **Edit/Delete:** Buttons next to each tool in the sidebar.
+*   **History:** Click the "Hist" button next to a tool to view past executions. Click a history entry to load its saved output.
 
-## Important Notes & Considerations
+## Contributing & Feedback
 
-*   **GHunt `cookies.json`:** The GHunt tool relies heavily on a valid `cookies.json` file obtained by authenticating a Google account. If GHunt fails, this is the most likely cause. You may need to periodically refresh these cookies by re-running `check_and_gen_cookies.py` within the `GHunt` directory.
-*   **Tool Execution Time:** Some tools can take a significant amount of time to run. The application has a timeout for commands, but long-running tasks might still make the UI unresponsive during execution in this simple setup.
-*   **Output Parsing:** The current implementation displays the raw or slightly processed output from the tools. More sophisticated parsing could be added for better presentation.
-*   **Security:**
-    *   The Flask development server is **not for production use**. For deployment, use a production-grade WSGI server like Gunicorn or uWSGI, preferably behind a reverse proxy like Nginx.
-    *   Input sanitization is implemented using `shlex.quote()`, but always be cautious when building web interfaces that execute shell commands.
-*   **Ethical Use:** These tools are powerful. Always use them responsibly and ethically, ensuring you have permission to scan or investigate any target. Comply with all applicable laws and regulations.
+This project is open source and contributions are welcome! If you have suggestions, bug reports, or want to add new features or tools:
+
+*   **Open an Issue:** Use the GitHub Issues tracker for bugs or feature discussions.
+*   **Pull Requests:** Feel free to fork the repository and submit pull requests.
+
+The creator is open to comments, recommendations, and collaboration to improve this dashboard.
 
 ## Troubleshooting
 
-*   **"Command not found" errors:**
-    *   Ensure the tool (e.g., `nmap`, `whois`) is installed globally on the system (via `apt`).
-    *   For cloned tools (Sherlock, Sublist3r, etc.), verify the paths in `app.py` (`*_DIR` variables) are correct and the tool's executable script exists at that path.
-    *   Ensure you are running the Flask app from within the activated virtual environment.
-*   **GHunt not working:** Almost always due to missing or invalid `GHunt/cookies.json`. Re-run `python3 GHunt/check_and_gen_cookies.py`.
-*   **Permission denied:** Some tools or operations (like Nmap's SYN scans or Metagoofil writing to certain directories) might require elevated privileges if not handled carefully. The current setup aims to use user-level permissions where possible.
-*   **Flask app doesn't start:** Check for Python syntax errors in `app.py` or issues with installed dependencies.
-
-## Future Enhancements (To-Do)
-
-*   Integrate more OSINT tools.
-*   Implement asynchronous task execution (e.g., using Celery & Redis) to prevent UI blocking for long-running tools.
-*   Improve UI/UX, including better formatting of tool outputs.
-*   Add user authentication and authorization.
-*   More robust error handling and reporting.
-*   Allow users to configure tool-specific options (e.g., Nmap scan types more dynamically).
-*   Implement a results storage/history feature.
-*   Security hardening for production deployment.
-
-## Disclaimer
-
-This project is for educational and research purposes only. The developers assume no liability and are not responsible for any misuse or damage caused by this program. Use at your own risk and ensure you comply with all applicable laws.
+*   **"Command not found" (for system tools like Nmap, ffuf):** Ensure the tool is installed globally (`sudo apt install <tool_name>`) and is in your system's PATH.
+*   **Python errors in `app.py`:** Check Flask server console output. Ensure all Python dependencies from `pip install` are correctly installed in the active virtual environment.
+*   **Tool cloning/requirements errors (from UI or `setup.sh`):**
+    *   Check server's internet connectivity.
+    *   Verify Git URLs are correct.
+    *   Ensure `pip` can install packages (permissions, network).
+    *   For tools with nested `requirements.txt` (like Sherlock, GHunt), ensure the `requirements_file` path in `data.json` (when adding via UI) or the `setup.sh` script is correct relative to the tool's cloned root.
+*   **GHunt not working:** Almost always due to missing or invalid `cookies.json`. Re-run `check_and_gen_cookies.py` in GHunt's directory.
+*   **Jinja2 Template Errors:** If you modify `index.html` and use `{{ ... }}` in a way Jinja2 misinterprets, you might see these. Standard HTML attributes like `placeholder` should not contain active Jinja2 template tags.
